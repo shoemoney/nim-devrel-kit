@@ -103,3 +103,19 @@ test('Router fails over retryable network and server errors and reports exhausti
   }), 'ok');
   await assert.rejects(new Router({ ranked: [] }).run(() => {}), /No model is available/);
 });
+
+test('bench redacts and bounds raw error details and tolerates null rates', async () => {
+  const results = await bench({ models: ['error', 'short'], runs: 1, call: async ({ model }) => {
+    if (model === 'error') throw new NimError('failure', { status: 500, detail: "account 'private-id' " + 'x'.repeat(500) });
+    return { ttftMs: 1, totalMs: 2, tokPerSec: null };
+  } });
+  assert.doesNotMatch(JSON.stringify(results), /private-id/);
+  assert.ok(results[0].rawRuns[0].detail.length <= 120);
+  assert.equal(results[1].tokPerSec, null);
+  assert.match(table(results), /\| - \| - to - \|/);
+});
+
+test('bench also redacts transport error messages stored in errors', async () => {
+  const results = await bench({ models: ['offline'], runs: 1, call: async () => { throw new NimError("account 'private-id' refused"); } });
+  assert.doesNotMatch(JSON.stringify(results), /private-id/);
+});

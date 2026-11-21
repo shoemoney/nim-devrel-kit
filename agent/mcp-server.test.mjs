@@ -110,3 +110,10 @@ test('measure stops permanently on 410 instead of retrying a retired model', asy
   const result = await call('measure_model', { model: 'retired', runs: 3 });
   assert.equal(requests, 1); assert.equal(result.errors[0].status, 'end_of_life');
 });
+
+test('measure preserves unavailable rates for short streams', async (t) => {
+  const { call } = await roundTrip(t, { streamChat: async () => ({ ttftMs: 10, tokPerSec: null }) });
+  const result = await call('measure_model', { model: 'short' });
+  assert.equal(result.okCount, 2);
+  assert.equal(result.medianTokensPerSecond, null);
+});

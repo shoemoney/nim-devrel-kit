@@ -8,7 +8,7 @@
 ```
 
 ![node](https://img.shields.io/badge/node-%3E%3D%2020-339933)
-![tests](https://img.shields.io/badge/tests-63%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-86%20passing-brightgreen)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 ![NVIDIA NIM](https://img.shields.io/badge/NVIDIA%20NIM-76B900)
 ![MCP](https://img.shields.io/badge/MCP-tools-8A2BE2)
@@ -32,7 +32,7 @@ You want to call NVIDIA NIM. Then the catalog changes, a model you copied from a
 
 | Developer problem | What the kit gives you |
 |---|---|
-| ⏱️ The first call takes too long to get working | Three quickstarts (curl, Python, Node) that find a live chat model, stream the answer and print timings. Measured wall times on 2026-11-21: curl 0.53 s, Python 0.78 s, Node 0.54 s. |
+| ⏱️ The first call takes too long to get working | Three quickstarts (curl, Python, Node) that find a live chat model, stream the answer and print timings. Measured wall times on 2026-11-21: curl 0.52 s, Python 0.82 s, Node 0.55 s. |
 | 🗑️ Catalogs rotate and models retire | The router uses only models in the live catalog. A model that returns HTTP 410 is dropped for the session, and the error carries the end-of-life date. |
 | 🚦 Rate limits (429) | A model that returns 429, a 5xx or times out is parked for 60 seconds, or for the `Retry-After` value. The next model answers. |
 | 🛠️ Agents need tools | An MCP tool server with four NIM tools, and an agent loop that checks every tool call before it runs. |
@@ -63,7 +63,7 @@ No key and no network? Run the whole demo against the bundled offline mock:
 bash scripts/demo.sh --offline
 ```
 
-The demo has five acts. Hosted, all five run end to end in about 16 seconds of wall time (measured 2026-11-21). The key is read only from the `NVIDIA_API_KEY` environment variable. Never put it in a file you commit.
+The demo has five acts. Hosted, all five run end to end in under 20 seconds of wall time (12 and 16 seconds in two runs on 2026-11-21, capture in `bench/results/2026-11-21-demo-run.txt`). The key is read only from the `NVIDIA_API_KEY` environment variable. Never put it in a file you commit.
 
 ## Architecture 🧭
 
@@ -93,7 +93,7 @@ flowchart LR
   LIB -.->|tests and offline demo| M
 ```
 
-Three backends are interchangeable because the client only uses `GET /v1/models` and `POST /v1/chat/completions`. The offline mock implements the same two routes.
+The backends are interchangeable because the client only uses `GET /v1/models` and `POST /v1/chat/completions`. The offline mock implements the same two routes.
 
 ## The four modules 🧩
 
@@ -215,7 +215,7 @@ Measured 2026-11-21 against the hosted NIM API.
 - **Tokens per second:** completion tokens reported by the server, divided by the time after the first token. If the server reports no usage, the count is estimated and marked.
 - **Summary:** medians, with the min and max beside each one.
 - **Time of day:** one. Raw runs for every sample are in `bench/results/2026-11-21-nemotron-hosted.json`.
-- **Reproduce:** `node router/nim-route.mjs bench --runs 5 --max-tokens 256 --concurrency 1 --out results.json`, then `node scripts/render-results.mjs results.json`.
+- **Reproduce:** `node router/nim-route.mjs bench --models nvidia/nemotron-3.5-bolt-e4b,nvidia/nemotron-3.5-lightning-30b-a3b,nvidia/nemotron-3-nano-omni-30b-a3b-reasoning,nvidia/nemotron-3.5-super-vl-120b-a12b,nvidia/nemotron-3-ultra-550b-a55b --runs 5 --max-tokens 256 --concurrency 1 --out results.json`, then `node scripts/render-results.mjs results.json`.
 
 </details>
 
@@ -226,11 +226,12 @@ Measured 2026-11-21 against the hosted NIM API.
 - Not a day of data. It is one snapshot from one time of day.
 - Not a quality score. The benchmark measures speed only.
 - Not comparable with the local run below, which is a different model on different hardware.
-- Reasoning models count reasoning deltas toward TTFT. That is why `nano-omni` has a wide range.
+- Reasoning models count reasoning deltas toward TTFT.
+- Ranges are wide where a single run spiked on the shared endpoint. One `nano-omni` run of five took 1107 ms to first token. The other four took 114 to 213 ms.
 
 ### Local portability check, not a comparison 🧪
 
-The same benchmark command ran against a local OpenAI-compatible MLX server on an M3 Ultra Mac Studio on the LAN. Only `NIM_BASE_URL` changed. Measured 2026-11-21.
+The same benchmark command ran against a local OpenAI-compatible MLX server on the author's LAN (an M3 Ultra Mac Studio, per the author; the JSON records only the client). Only `NIM_BASE_URL` changed. Measured 2026-11-21.
 
 - Model: `gemma-4-26b-a4b-it-4bit`, a different model and quantization from the hosted set
 - Settings: the same 5 runs, 256 max tokens, temperature 0.2 and prompt
@@ -287,7 +288,7 @@ Every flag below comes from the code. Defaults are in parentheses.
 | `node local/mock-nim.mjs` | `--port N` (8089), `--slow-ms N` (400), `--token-delay-ms N` (10) | Offline OpenAI-compatible mock with fault injection |
 | `bash scripts/demo.sh` | `--offline`. Env: `DEMO_PAUSE=1`, `MOCK_PORT` (8089) | Runs the five-act demo |
 | `node scripts/render-results.mjs FILE...` | one or more bench JSON files | Prints markdown tables from the JSON |
-| `npm test` | none | Runs all 63 tests. No network and no key needed |
+| `npm test` | none | Runs all 86 tests. No network and no key needed |
 
 `--base URL` overrides `NIM_BASE_URL` on every router and agent command. `NVIDIA_API_KEY` is the only place a key comes from.
 
@@ -321,7 +322,7 @@ nim-devrel-kit/
 ## Tests 🧪
 
 ```sh
-npm test            # all 63 tests, no network, no key
+npm test            # all 86 tests, no network, no key
 node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, local
 ```
 
@@ -332,7 +333,7 @@ node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, lo
 | ✅ | Quickstarts in curl, Python and Node, with a smoke script |
 | ✅ | Router with probe, benchmark, failover and the 410, 429 and rethrow rules |
 | ✅ | MCP agent with four NIM tools and a deterministic tool floor |
-| ✅ | Offline mock with fault injection, five-act demo and 63 tests |
+| ✅ | Offline mock with fault injection, five-act demo and 86 tests |
 | ✅ | Hosted Nemotron benchmark, 2026-11-21, with raw runs |
 | 🔨 | Self-hosted NIM container run on an NVIDIA GPU, to replace the documented-only recipe |
 | ⬜ | Tool calling latency in the hosted benchmark, not only a pass or fail check |

@@ -83,3 +83,6 @@ The same base and key configuration reaches the built-in MCP server.
 
 `runAgent` accepts `chatFn`, `router`, `tools`, `callTool`, and `onEvent` for offline
 experiments. `createToolServer` accepts an injected NIM client for MCP transport tests.
+
+Custom `--mcp` commands do not receive NVIDIA_API_KEY unless `--mcp-share-key` is passed. The built-in server receives it.
+Exit codes: 0 for a normal answer, 2 for the step limit or repeated-tool stop, and 1 for errors.

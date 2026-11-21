@@ -25,7 +25,7 @@ except (ValueError, OSError): body = {}
 if status == 410:
     message = "410: " + str(body.get("detail", "Model reached end of life.")) + " Pick another model from /v1/models."
 else:
-    message = {401: "401: Check NVIDIA_API_KEY or your server credentials.", 429: "429: Rate limit reached. Wait before trying again.", 404: "404: Model not found. Pick a chat model from /v1/models."}.get(status, f"HTTP {status}: Request failed. Check the server and model.")
+    message = {401: "401: Check NVIDIA_API_KEY or your server credentials.", 403: "401: Check NVIDIA_API_KEY or your server credentials.", 429: "429: Rate limit reached. Wait before trying again.", 404: "404: Model not found. Pick a chat model from /v1/models."}.get(status, f"HTTP {status}: Request failed. Check the server and model.")
 sys.exit(message)
 ' "$1" "$2"
 }
@@ -35,7 +35,7 @@ echo '1. List models'
 printf 'curl -sS --max-time %q %q' "${NIM_TIMEOUT_SECONDS:-120}" "$base/models"
 [[ -z "$key" ]] || printf ' -H "Authorization: Bearer $NVIDIA_API_KEY"'
 printf '\n'
-status=$(curl -sS --max-time "${NIM_TIMEOUT_SECONDS:-120}" "${auth[@]}" "$base/models" -o "$work/models.json" -w '%{http_code}') || { echo 'Request failed. Check NIM_BASE_URL and connectivity.' >&2; exit 1; }
+status=$(curl -sS --max-time "${NIM_TIMEOUT_SECONDS:-120}" ${auth[@]+"${auth[@]}"} "$base/models" -o "$work/models.json" -w '%{http_code}') || { echo 'Request failed. Check NIM_BASE_URL and connectivity.' >&2; exit 1; }
 check_status "$status" "$work/models.json"
 
 # Step 2: intersect chat preferences with the catalog, or honor NIM_MODEL.
@@ -60,7 +60,7 @@ printf 'curl -sS --max-time %q %q' "${NIM_TIMEOUT_SECONDS:-120}" "$base/chat/com
 [[ -z "$key" ]] || printf ' -H "Authorization: Bearer $NVIDIA_API_KEY"'
 printf ' -H '\''Content-Type: application/json'\'' -d %s\n' "$(python3 -c 'import shlex,sys; print(shlex.quote(sys.argv[1]))' "$payload")"
 start=$(python3 -c 'import time; print(time.monotonic())')
-status=$(curl -sS --max-time "${NIM_TIMEOUT_SECONDS:-120}" "${auth[@]}" "$base/chat/completions" -H 'Content-Type: application/json' -d "$payload" -o "$work/chat.json" -w '%{http_code}') || { echo 'Request failed. Check NIM_BASE_URL and connectivity.' >&2; exit 1; }
+status=$(curl -sS --max-time "${NIM_TIMEOUT_SECONDS:-120}" ${auth[@]+"${auth[@]}"} "$base/chat/completions" -H 'Content-Type: application/json' -d "$payload" -o "$work/chat.json" -w '%{http_code}') || { echo 'Request failed. Check NIM_BASE_URL and connectivity.' >&2; exit 1; }
 check_status "$status" "$work/chat.json"
 python3 -c '
 import json,sys,time

@@ -46,3 +46,5 @@ Parking lasts 60 seconds by default, or the server's Retry-After seconds.
 A 410 marks the model gone for the entire router session. It is never retried.
 Other errors, including 400 and 401, rethrow immediately because switching
 models will not reliably fix a bad request or credential.
+
+Benchmark JSON records the hosted NVIDIA endpoint host, or `local` for other servers. Use `--label local-mlx` to override this label without recording a private address.

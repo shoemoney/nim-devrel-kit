@@ -12,6 +12,7 @@ export class Router {
     this.log = [];
   }
   async run(fn) {
+    let lastError;
     for (const model of this.ranked) {
       if (this.gone.has(model)) { this.log.push({ model, skipped: 'gone' }); continue; }
       if ((this.parkedUntil.get(model) ?? -Infinity) > this.now()) {
@@ -22,6 +23,7 @@ export class Router {
         this.log.push({ model, served: true });
         return out;
       } catch (error) {
+        lastError = error;
         if (error instanceof NimError && error.gone) {
           this.gone.add(model);
           this.log.push({ model, error: error.status, gone: true });
@@ -31,7 +33,7 @@ export class Router {
         } else { throw error; }
       }
     }
-    throw new Error('No model is available: all models are parked, gone or failing.');
+    throw new Error(`No model is available: all models are parked, gone or failing.${lastError ? ` ${lastError.message}` : ''}`);
   }
 }
 
@@ -86,8 +88,8 @@ export async function bench({ base, key, models, prompt, runs = 5, maxTokens = 2
         samples.push(sample); rawRuns.push(sample);
       } catch (error) {
         if (!(error instanceof NimError)) throw error;
-        errors.push(error.status ?? error.message);
-        rawRuns.push({ run: run + 1, ok: false, status: error.status, detail: error.detail ?? error.message });
+        errors.push(error.status ?? tidy(error.message));
+        rawRuns.push({ run: run + 1, ok: false, status: error.status, detail: tidy(error.detail ?? error.message) });
         if (error.gone) { gone = true; break; }
       }
     }
@@ -124,7 +126,7 @@ async function main() {
     base: { type: 'string' }, models: { type: 'string' }, probe: { type: 'boolean' },
     'all-chat': { type: 'boolean' }, 'no-bench': { type: 'boolean' }, prompt: { type: 'string' },
     runs: { type: 'string' }, 'max-tokens': { type: 'string', default: '256' },
-    'timeout-ms': { type: 'string', default: '120000' }, concurrency: { type: 'string' }, out: { type: 'string' },
+    'timeout-ms': { type: 'string', default: '120000' }, concurrency: { type: 'string' }, out: { type: 'string' }, label: { type: 'string' },
   } });
   const command = positionals[0];
   if (!['models', 'bench', 'route'].includes(command) || positionals.length !== 1) {
@@ -156,12 +158,12 @@ async function main() {
     ranked = models;
   } else {
     const results = await bench({ base, key, models, ...settings });
-    console.log(table(results));
-    if (results.some((r) => r.errors.includes(401))) {
+    if (results.every((r) => r.ok === 0 && r.rawRuns.every((run) => [401, 403].includes(run.status)))) {
       throw new NimError('NVIDIA API key is missing or wrong. Visit https://build.nvidia.com.', { status: 401 });
     }
+    console.log(table(results));
     if (values.out) {
-      const record = { kit: 'nim-devrel-kit', date: new Date().toISOString(), base: new URL(base).host,
+      const record = { kit: 'nim-devrel-kit', date: new Date().toISOString(), base: values.label ?? (new URL(base).hostname === 'integrate.api.nvidia.com' ? new URL(base).host : 'local'),
         node: process.version, platform: process.platform, settings, results };
       await writeFile(values.out, `${JSON.stringify(record, null, 2)}\n`);
     }
@@ -170,14 +172,21 @@ async function main() {
   if (command === 'bench') return;
   if (!ranked.length) throw new Error('No model answered the benchmark. Run models --probe to check availability.');
   const router = new Router({ ranked });
-  const out = await router.run((model) => streamChat({ base, key, model, ...settings, onToken: (text) => process.stdout.write(text) }));
+  const out = await router.run(async (model) => {
+    let started = false;
+    try { return await streamChat({ base, key, model, ...settings, onToken: (text) => { started = true; process.stdout.write(text); } }); }
+    catch (error) {
+      if (started && error instanceof NimError && (error.retryable || error.gone)) console.error(`\n[${model} failed, failing over]`);
+      throw error;
+    }
+  });
   console.log(`\nServed by ${out.model}: TTFT ${number(out.ttftMs)} ms, ${number(out.tokPerSec, 1)} tok/s${out.tokensEstimated ? ' (estimated)' : ''}`);
   console.log('Route log:', JSON.stringify(router.log));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
-    const message = error instanceof NimError && error.status === 401
+    const message = error instanceof NimError && [401, 403].includes(error.status)
       ? 'NVIDIA API key is missing or wrong. Set NVIDIA_API_KEY with a key from https://build.nvidia.com.'
       : error instanceof NimError && error.gone
         ? `${error.model}: model is end of life. Run models to choose a current model. ${error.detail ?? ''}` : error.message;

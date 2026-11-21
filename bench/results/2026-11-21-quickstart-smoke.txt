@@ -1,0 +1,3 @@
+PASS curl wall_seconds=0.52
+PASS python wall_seconds=0.82
+PASS node wall_seconds=0.55

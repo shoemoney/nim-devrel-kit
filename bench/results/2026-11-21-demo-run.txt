@@ -1,0 +1,61 @@
+
+=== Act 1: first call. Discover a model, stream an answer ===
+$ node quickstart/node/quickstart.mjs
+Hello!
+model=nvidia/nemotron-3.5-bolt-e4b ttft_ms=303 total_ms=330
+
+=== Act 2: benchmark. Time to first token and tokens per second, measured right now ===
+$ node router/nim-route.mjs bench --runs 2 --max-tokens 128
+| model | ok | median TTFT ms | TTFT min to max | median tok/s | tok/s min to max | median total ms | median out tokens | errors |
+|---|---|---|---|---|---|---|---|---|
+| nvidia/nemotron-3.5-bolt-e4b | 2/2 | 227 | 187 to 266 | 89.0 | 88.9 to 89.2 | 957 | 65.0 | - |
+| nvidia/nemotron-3.5-lightning-30b-a3b | 2/2 | 211 | 209 to 213 | 183.4 | 157.6 to 209.2 | 923 | 128.0 | - |
+| nvidia/nemotron-3-nano-omni-30b-a3b-reasoning | 2/2 | 375 | 196 to 554 | 116.5 | 83.5 to 149.6 | 1570 | 128.0 | - |
+
+=== Act 3: failover. One model is rate limited, one is end of life, the router still answers ===
+This act always uses the offline mock so the failures are repeatable.
+$ node router/nim-route.mjs route --no-bench --models mock/busy,mock/retired,mock/fast --prompt Who served this request?
+This is a mock response. No model is running.
+Served by mock/fast: TTFT 2 ms, 95.1 tok/s
+Route log: [{"model":"mock/busy","error":429,"parked":true},{"model":"mock/retired","error":410,"gone":true},{"model":"mock/fast","served":true}]
+
+=== Act 4: route for real. Rank by measured speed, send the prompt to the fastest healthy model ===
+$ node router/nim-route.mjs route --runs 1 --prompt In two sentences: why does time to first token matter for a voice agent?
+| model | ok | median TTFT ms | TTFT min to max | median tok/s | tok/s min to max | median total ms | median out tokens | errors |
+|---|---|---|---|---|---|---|---|---|
+| nvidia/nemotron-3.5-bolt-e4b | 1/1 | 253 | 253 to 253 | 93.6 | 93.6 to 93.6 | 776 | 49.0 | - |
+| nvidia/nemotron-3.5-lightning-30b-a3b | 1/1 | 304 | 304 to 304 | 225.0 | 225.0 to 225.0 | 1441 | 256.0 | - |
+| nvidia/nemotron-3-nano-omni-30b-a3b-reasoning | 1/1 | 182 | 182 to 182 | 160.2 | 160.2 to 160.2 | 1331 | 184.0 | - |
+The time to first token measures how quickly the model begins generating speech, directly reflecting the system’s responsiveness to the user’s spoken request. A short latency enhances user experience by making the interaction feel natural and minimizing perceived waiting time.
+Served by nvidia/nemotron-3-nano-omni-30b-a3b-reasoning: TTFT 115 ms, 164.3 tok/s
+Route log: [{"model":"nvidia/nemotron-3-nano-omni-30b-a3b-reasoning","served":true}]
+
+=== Act 5: the agent. Nemotron calls MCP tools to answer a developer question ===
+$ node agent/agent.mjs Is meta/llama-3.1-8b-instruct still available? If not, which small NVIDIA Nemotron model should I use for a tool-calling agent? Check that your pick is alive and supports tools.
+Step 1: nvidia/nemotron-3.5-bolt-e4b
+  🔧 check_model({"model":"meta/llama-3.1-8b-instruct"}) 177 ms
+     {"model":"meta/llama-3.1-8b-instruct","status":"end_of_life","httpStatus":410,"detail":"The model 'meta/llama-3.1-8b-instruct' has reached its end of life on 2026-08-26T09:00:00Z and is no longer available.","latencyMs":
+Step 2: nvidia/nemotron-3.5-bolt-e4b
+  🔧 list_models({"filter":"nemotron"}) 46 ms
+     {"ids":["nvidia/llama-3.1-nemotron-safety-guard-8b-v3","nvidia/nemotron-3-embed-1b","nvidia/nemotron-3-nano-omni-30b-a3b-reasoning","nvidia/nemotron-3-ultra-550b-a55b","nvidia/nemotron-3.5-bolt-e4b","nvidia/nemotron-3.5-
+Step 3: nvidia/nemotron-3.5-bolt-e4b
+  🔧 check_model({"model":"nvidia/nemotron-3.5-bolt-e4b"}) 203 ms
+     {"model":"nvidia/nemotron-3.5-bolt-e4b","status":"alive","httpStatus":200,"detail":"Chat completion succeeded.","latencyMs":201.5809159999999}
+Step 4: nvidia/nemotron-3.5-bolt-e4b
+  🔧 supports_tools({"model":"nvidia/nemotron-3.5-bolt-e4b"}) 238 ms
+     {"model":"nvidia/nemotron-3.5-bolt-e4b","supportsTools":true,"detail":"Well formed ping call returned."}
+Step 5: nvidia/nemotron-3.5-bolt-e4b
+
+The model `meta/llama-3.1-8b-instruct` is end-of-life as of 2026-08-26T09:00:00Z.
+
+For a small NVIDIA Nemotron model suitable for a tool-calling agent, I recommend `nvidia/nemotron-3.5-bolt-e4b`.
+
+Verification:
+*   **Availability:** `nvidia/nemotron-3.5-bolt-e4b` is **alive**.
+*   **Tool Support:** `nvidia/nemotron-3.5-bolt-e4b` **supports tools**.
+
+Done. Same client code for every act. Only NIM_BASE_URL changed.
+
+real	0m12.173s
+user	0m1.252s
+sys	0m0.351s

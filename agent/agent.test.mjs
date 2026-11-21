@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { runAgent, mcpToolsToOpenAI, splitCommand, connectMcp } from './agent.mjs';
+import { runAgent, mcpToolsToOpenAI, splitCommand, connectMcp, mcpEnvironment, agentExitCode } from './agent.mjs';
+
+import { Router } from '../router/nim-route.mjs';
+import { NimError } from '../lib/nim.mjs';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 const tools = mcpToolsToOpenAI([{ name: 'check', description: 'Check a model', inputSchema: {
   type: 'object', properties: { model: { type: 'string' } }, required: ['model'], additionalProperties: false,
@@ -85,7 +89,12 @@ test('different intervening call resets consecutive repetition counter', async (
 });
 
 test('step limit returns structured result and reasoning-only content is tolerated', async () => {
-  const result = await runAgent(options(async () => ({ message: { content: null, reasoning_content: 'thinking' } }), { maxSteps: 2 }));
+  let turns = 0;
+  const result = await runAgent(options(async ({ messages }) => {
+    if (turns++) assert.match(messages.at(-1).content, /final visible answer/);
+    return { message: { content: null, reasoning_content: 'thinking' } };
+  }, { maxSteps: 2 }));
+  assert.equal(turns, 2);
   assert.equal(result.steps, 2); assert.equal(result.stopped, 'step_limit'); assert.match(result.answer, /Step limit reached/);
 });
 
@@ -129,22 +138,15 @@ test('stdio wiring namespaces only collisions and flattens text', async () => {
   } finally { await mcp.close(); }
 });
 
-test('failed MCP startup is friendly and closes transports', async () => {
+test('failed MCP startup is friendly and closes transports', async (t) => {
+  let closed = 0;
+  const original = Client.prototype.close;
+  t.mock.method(Client.prototype, 'close', async function () { closed++; return original.call(this); });
   await assert.rejects(connectMcp([['/no-such-mcp-command']]), /MCP server 1 failed to start/);
+  assert.equal(closed, 1);
 });
 
-test('real Router, when present, drops 410 and parks 429 while retaining tool history', async () => {
-  let Router, NimError;
-  try {
-    ({ Router } = await import('../router/nim-route.mjs'));
-    ({ NimError } = await import('../lib/nim.mjs'));
-  } catch (error) {
-    if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
-  }
-  if (!Router) {
-    // The injected router test above covers the loop while worker A is still building.
-    return;
-  }
+test('real Router drops 410 and parks 429 while retaining tool history', async () => {
   const router = new Router({ ranked: ['gone', 'busy', 'alive'] });
   const attempted = []; let turns = 0;
   const result = await runAgent(options(async ({ model, messages }) => {
@@ -159,4 +161,27 @@ test('real Router, when present, drops 410 and parks 429 while retaining tool hi
   assert.deepEqual(attempted, ['gone', 'busy', 'alive', 'alive']);
   assert.ok(result.routeLog.some((item) => item.gone));
   assert.ok(result.routeLog.some((item) => item.parked));
+});
+
+test('custom MCP environment omits key unless sharing is explicit', () => {
+  const env = { PATH: '/bin', NVIDIA_API_KEY: 'test-value', OTHER: 'yes', UNSET: undefined };
+  assert.deepEqual(mcpEnvironment(env), { PATH: '/bin', OTHER: 'yes' });
+  assert.deepEqual(mcpEnvironment(env, true), { PATH: '/bin', NVIDIA_API_KEY: 'test-value', OTHER: 'yes' });
+  assert.equal(env.NVIDIA_API_KEY, 'test-value');
+});
+
+test('agent exit codes distinguish completion from both stops', () => {
+  assert.equal(agentExitCode({ answer: 'Done' }), 0);
+  assert.equal(agentExitCode({ stopped: 'step_limit' }), 2);
+  assert.equal(agentExitCode({ stopped: 'repeated_tool' }), 2);
+});
+
+test('MCP startup includes bounded redacted stderr', async () => {
+  const script = "process.stderr.write('x'.repeat(3000) + ' failure private-test-value'); process.exit(1)";
+  await assert.rejects(connectMcp([[process.execPath, '-e', script]], { ...process.env, NVIDIA_API_KEY: 'private-test-value' }), (e) => {
+    assert.match(e.message, /failure \[redacted\]/);
+    assert.doesNotMatch(e.message, /private-test-value/);
+    assert.ok(e.message.length < 2200);
+    return true;
+  });
 });

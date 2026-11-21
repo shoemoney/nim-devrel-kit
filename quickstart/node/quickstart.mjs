@@ -14,7 +14,7 @@ async function request(path, body) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     if (response.status === 410) throw new Error(`410: ${error.detail || 'Model reached end of life.'} Pick another model from /v1/models.`);
-    if (response.status === 401) throw new Error('401: Check NVIDIA_API_KEY or your server credentials.');
+    if ([401, 403].includes(response.status)) throw new Error('401: Check NVIDIA_API_KEY or your server credentials.');
     if (response.status === 429) throw new Error('429: Rate limit reached. Wait before trying again.');
     if (response.status === 404) throw new Error('404: Model not found. Pick a chat model from /v1/models.');
     throw new Error(`HTTP ${response.status}: Request failed. Check the server and model.`);

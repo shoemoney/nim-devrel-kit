@@ -47,7 +47,7 @@ def main():
         if exc.status_code == 410:
             body = exc.body if isinstance(exc.body, dict) else {}
             sys.exit("410: " + str(body.get("detail", "Model reached end of life.")) + " Pick another model from /v1/models.")
-        messages = {401: "401: Check NVIDIA_API_KEY or your server credentials.",
+        messages = {401: "401: Check NVIDIA_API_KEY or your server credentials.", 403: "401: Check NVIDIA_API_KEY or your server credentials.",
                     429: "429: Rate limit reached. Wait before trying again.",
                     404: "404: Model not found. Pick a chat model from /v1/models."}
         sys.exit(messages.get(exc.status_code, f"HTTP {exc.status_code}: Request failed. Check the server and model."))

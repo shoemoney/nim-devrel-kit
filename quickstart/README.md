@@ -105,6 +105,8 @@ Hello there!
 model=gemma-4-26b-a4b-it-4bit ttft_ms=19846 total_ms=19876
 ```
 
+This first request included a cold model load on the local server; a warm 5-run benchmark of the same server is in the main README's results section.
+
 ## Troubleshooting
 
 | Symptom | What to do |
