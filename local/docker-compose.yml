@@ -1,0 +1,36 @@
+# Written from NVIDIA documentation, not run by the author, whose hardware is Apple Silicon.
+# This recipe needs an NVIDIA GPU and an NGC key. The author has no NVIDIA GPU.
+# Current launch, image, port, cache and readiness docs (checked 2026-11-21):
+# https://docs.nvidia.com/nim/large-language-models/latest/get-started/quickstart.html
+# https://docs.nvidia.com/nim/large-language-models/latest/get-started/configuration.html
+# Catalog: https://catalog.ngc.nvidia.com/orgs/nim/teams/meta/containers/llama-3.1-8b-instruct
+# Verified example only: NIM_IMAGE=nvcr.io/nim/meta/llama-3.1-8b-instruct:2.1.6
+# Shared memory setting follows NVIDIA's 1.14 launch guidance:
+# https://docs.nvidia.com/nim/large-language-models/1.14.0/getting-started.html
+# Compose GPU reservations: https://docs.docker.com/compose/how-tos/gpu-support/
+# Choose an image/profile supported by your GPU. This is a single-host Docker recipe.
+services:
+  nim:
+    image: ${NIM_IMAGE:?set NIM_IMAGE to a NIM container image from the NGC catalog}
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY:?set NGC_API_KEY in your environment}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - nim-cache:/opt/nim/.cache
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10m
+      retries: 20
+volumes:
+  nim-cache:
