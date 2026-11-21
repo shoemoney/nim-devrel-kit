@@ -1,0 +1,80 @@
+{
+  "kit": "nim-devrel-kit",
+  "date": "2026-11-21T17:41:24.371Z",
+  "base": "local-mlx",
+  "node": "v24.22.3",
+  "platform": "linux",
+  "settings": {
+    "runs": 5,
+    "maxTokens": 256,
+    "temperature": 0.2,
+    "prompt": "In three sentences, explain why KV-cache size limits batch size during LLM inference.",
+    "concurrency": 1,
+    "timeoutMs": 120000
+  },
+  "results": [
+    {
+      "model": "gemma-4-26b-a4b-it-4bit",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 731.7974439999999,
+          "totalMs": 1451.077119,
+          "outTokens": 86,
+          "tokensEstimated": false,
+          "tokPerSec": 119.56406247681055
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 104.13371800000004,
+          "totalMs": 806.0805400000002,
+          "outTokens": 85,
+          "tokensEstimated": false,
+          "tokPerSec": 121.0917940447631
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 46.97200399999974,
+          "totalMs": 861.191628,
+          "outTokens": 98,
+          "tokensEstimated": false,
+          "tokPerSec": 120.36064608533677
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 47.34180200000037,
+          "totalMs": 777.790062,
+          "outTokens": 88,
+          "tokensEstimated": false,
+          "tokPerSec": 120.47396758806715
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 47.23822099999961,
+          "totalMs": 885.6664420000002,
+          "outTokens": 101,
+          "tokensEstimated": false,
+          "tokPerSec": 120.46350238489876
+        }
+      ],
+      "ttftMs": 47.34180200000037,
+      "ttftMinMs": 46.97200399999974,
+      "ttftMaxMs": 731.7974439999999,
+      "tokPerSec": 120.46350238489876,
+      "tokPerSecMin": 119.56406247681055,
+      "tokPerSecMax": 121.0917940447631,
+      "totalMs": 861.191628,
+      "outTokens": 88,
+      "tokensEstimated": false
+    }
+  ]
+}

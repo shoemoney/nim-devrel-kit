@@ -1,0 +1,332 @@
+{
+  "kit": "nim-devrel-kit",
+  "date": "2026-11-21T17:41:09.986Z",
+  "base": "integrate.api.nvidia.com",
+  "node": "v24.22.3",
+  "platform": "linux",
+  "settings": {
+    "runs": 5,
+    "maxTokens": 256,
+    "temperature": 0.2,
+    "prompt": "In three sentences, explain why KV-cache size limits batch size during LLM inference.",
+    "concurrency": 1,
+    "timeoutMs": 120000
+  },
+  "results": [
+    {
+      "model": "nvidia/nemotron-3.5-bolt-e4b",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 268.79002,
+          "totalMs": 998.848124,
+          "outTokens": 65,
+          "tokensEstimated": false,
+          "tokPerSec": 89.03400927113057
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 192.11847699999998,
+          "totalMs": 920.1330500000001,
+          "outTokens": 65,
+          "tokensEstimated": false,
+          "tokPerSec": 89.28392701281817
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 179.00596399999995,
+          "totalMs": 915.3843270000002,
+          "outTokens": 65,
+          "tokensEstimated": false,
+          "tokPerSec": 88.26983961776179
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 178.2927709999999,
+          "totalMs": 914.8495699999999,
+          "outTokens": 65,
+          "tokensEstimated": false,
+          "tokPerSec": 88.24845563607377
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 177.54590400000006,
+          "totalMs": 910.729636,
+          "outTokens": 65,
+          "tokensEstimated": false,
+          "tokPerSec": 88.65444930521181
+        }
+      ],
+      "ttftMs": 179.00596399999995,
+      "ttftMinMs": 177.54590400000006,
+      "ttftMaxMs": 268.79002,
+      "tokPerSec": 88.65444930521181,
+      "tokPerSecMin": 88.24845563607377,
+      "tokPerSecMax": 89.28392701281817,
+      "totalMs": 915.3843270000002,
+      "outTokens": 65,
+      "tokensEstimated": false
+    },
+    {
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 121.16706800000065,
+          "totalMs": 1503.1483859999998,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 185.2412884788361
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 139.99911599999996,
+          "totalMs": 2575.0889480000005,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 105.129591785836
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 125.80330399999912,
+          "totalMs": 1443.1501370000005,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 194.3299923657992
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 120.20394300000044,
+          "totalMs": 2557.6181890000007,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 105.02933607617881
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 118.91674700000112,
+          "totalMs": 1424.5276050000011,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 196.0768007032
+        }
+      ],
+      "ttftMs": 121.16706800000065,
+      "ttftMinMs": 118.91674700000112,
+      "ttftMaxMs": 139.99911599999996,
+      "tokPerSec": 185.2412884788361,
+      "tokPerSecMin": 105.02933607617881,
+      "tokPerSecMax": 196.0768007032,
+      "totalMs": 1503.1483859999998,
+      "outTokens": 256,
+      "tokensEstimated": false
+    },
+    {
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 137.9029329999994,
+          "totalMs": 3185.0518300000003,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 84.0129605258341
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 138.42954499999905,
+          "totalMs": 3066.9751920000017,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 87.41540370464978
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 113.96509100000185,
+          "totalMs": 4174.8257790000025,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 63.04082303450838
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 1107.0610159999997,
+          "totalMs": 4117.105092000002,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 85.04858850445612
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 213.73144400000092,
+          "totalMs": 3065.852836000002,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 89.75775039521878
+        }
+      ],
+      "ttftMs": 138.42954499999905,
+      "ttftMinMs": 113.96509100000185,
+      "ttftMaxMs": 1107.0610159999997,
+      "tokPerSec": 85.04858850445612,
+      "tokPerSecMin": 63.04082303450838,
+      "tokPerSecMax": 89.75775039521878,
+      "totalMs": 3185.0518300000003,
+      "outTokens": 256,
+      "tokensEstimated": false
+    },
+    {
+      "model": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 413.085624000003,
+          "totalMs": 2007.5476110000018,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 160.55572480700363
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 884.943941000005,
+          "totalMs": 3167.5132490000033,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 112.15431623599144
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 376.0931800000035,
+          "totalMs": 2352.4018170000054,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 129.5344235243555
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 348.47146700000303,
+          "totalMs": 2195.7119539999985,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 138.58509587766557
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 357.7537769999981,
+          "totalMs": 4447.204733999999,
+          "outTokens": 256,
+          "tokensEstimated": false,
+          "tokPerSec": 62.60009049914128
+        }
+      ],
+      "ttftMs": 376.0931800000035,
+      "ttftMinMs": 348.47146700000303,
+      "ttftMaxMs": 884.943941000005,
+      "tokPerSec": 129.5344235243555,
+      "tokPerSecMin": 62.60009049914128,
+      "tokPerSecMax": 160.55572480700363,
+      "totalMs": 2352.4018170000054,
+      "outTokens": 256,
+      "tokensEstimated": false
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 2267.432501999996,
+          "totalMs": 9250.693716999995,
+          "outTokens": 143,
+          "tokensEstimated": false,
+          "tokPerSec": 20.47753844476517
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 471.63347200000135,
+          "totalMs": 3425.770767000002,
+          "outTokens": 112,
+          "tokensEstimated": false,
+          "tokPerSec": 37.91292983896335
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 455.4182660000006,
+          "totalMs": 3991.6797210000004,
+          "outTokens": 132,
+          "tokensEstimated": false,
+          "tokPerSec": 37.32755670918004
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 457.84085100000084,
+          "totalMs": 4584.774061000004,
+          "outTokens": 154,
+          "tokensEstimated": false,
+          "tokPerSec": 37.31584500249276
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 475.8511359999975,
+          "totalMs": 3936.3730630000064,
+          "outTokens": 130,
+          "tokensEstimated": false,
+          "tokPerSec": 37.56658756752899
+        }
+      ],
+      "ttftMs": 471.63347200000135,
+      "ttftMinMs": 455.4182660000006,
+      "ttftMaxMs": 2267.432501999996,
+      "tokPerSec": 37.32755670918004,
+      "tokPerSecMin": 20.47753844476517,
+      "tokPerSecMax": 37.91292983896335,
+      "totalMs": 3991.6797210000004,
+      "outTokens": 132,
+      "tokensEstimated": false
+    }
+  ]
+}

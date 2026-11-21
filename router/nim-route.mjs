@@ -45,6 +45,9 @@ async function limited(items, concurrency, fn) {
   return results;
 }
 
+// Server error text can carry account ids and long traces. Keep it short and anonymous.
+const tidy = (text) => String(text).replace(/account '[^']*'/g, "account '<redacted>'").replace(/\s+/g, ' ').slice(0, 120);
+
 export async function probe({ base, key, models, concurrency = 6, call = chat }) {
   const catalog = models ?? (await listModels({ base, key })).map((m) => m.id);
   return limited(catalog, concurrency, async (item) => {
@@ -56,7 +59,7 @@ export async function probe({ base, key, models, concurrency = 6, call = chat })
       if (!(error instanceof NimError)) throw error;
       const status = error.gone ? 'gone' : error.status === 429 ? 'rate-limited'
         : error.status >= 400 && error.status < 500 ? 'not-chat' : 'error';
-      return { model, status, httpStatus: error.status, detail: error.detail ?? error.message };
+      return { model, status, httpStatus: error.status, detail: tidy(error.detail ?? error.message) };
     }
   });
 }
@@ -133,8 +136,8 @@ async function main() {
   if (command === 'models') {
     if (!values.probe) { for (const model of catalog) console.log(model.id); return; }
     const results = await probe({ base, key, models: catalog, concurrency: positive(values.concurrency ?? 6, 'concurrency') });
-    console.log(['| model | status | detail |', '|---|---|---|',
-      ...results.map((r) => `| ${cell(r.model)} | ${r.status} | ${cell(r.detail ?? '-')} |`)].join('\n'));
+    console.log(['| model | http | status | detail |', '|---|---|---|---|',
+      ...results.map((r) => `| ${cell(r.model)} | ${r.httpStatus ?? '-'} | ${r.status} | ${cell(r.detail ?? '-')} |`)].join('\n'));
     return;
   }
   let wanted = values.models ? values.models.split(',').map((s) => s.trim()).filter(Boolean) : PREFERRED_MODELS;
