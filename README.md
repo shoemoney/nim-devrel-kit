@@ -9,7 +9,7 @@
 
 ![node](https://img.shields.io/badge/node-%3E%3D%2020-339933)
 ![tests](https://img.shields.io/badge/tests-86%20passing-brightgreen)
-![license](https://img.shields.io/badge/license-MIT-blue)
+![license](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![NVIDIA NIM](https://img.shields.io/badge/NVIDIA%20NIM-76B900)
 ![MCP](https://img.shields.io/badge/MCP-tools-8A2BE2)
 
@@ -358,7 +358,7 @@ node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, lo
 
 ## License 📜
 
-MIT. See [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](LICENSE). Copyright 2026 Jeremy Schoemaker.
 
 <div align="center">
 
