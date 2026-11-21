@@ -1,0 +1,23 @@
+{
+  "name": "nim-devrel-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NVIDIA NIM developer kit: quickstart, fastest-first router, MCP tool-calling agent on Nemotron, measured benchmarks",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "models": "node router/nim-route.mjs models",
+    "bench": "node router/nim-route.mjs bench",
+    "route": "node router/nim-route.mjs route",
+    "agent": "node agent/agent.mjs",
+    "mock": "node local/mock-nim.mjs",
+    "demo": "bash scripts/demo.sh"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  }
+}
