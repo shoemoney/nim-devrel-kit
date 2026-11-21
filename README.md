@@ -225,7 +225,7 @@ Measured 2026-11-21 against the hosted NIM API.
 - Not a benchmark of NVIDIA hardware. The endpoint is shared, so load changes from hour to hour.
 - Not a day of data. It is one snapshot from one time of day.
 - Not a quality score. The benchmark measures speed only.
-- Not comparable with the local run below, which is a different model on different hardware.
+- Not comparable with the two local runs below. Each is different hardware, and one is a different model.
 - Reasoning models count reasoning deltas toward TTFT.
 - Ranges are wide where a single run spiked on the shared endpoint. One `nano-omni` run of five took 1107 ms to first token. The other four took 114 to 213 ms.
 
@@ -241,6 +241,21 @@ The same benchmark command ran against a local OpenAI-compatible MLX server on t
 | gemma-4-26b-a4b-it-4bit | 5/5 | 47 | 47 to 732 | 120.5 | 119.6 to 121.1 | 861 | 88.0 | - |
 
 This run shows that the client code is portable. It does not show that local is faster or slower than hosted. The model, the quantization and the setup all differ, and the server serves one user on a LAN.
+
+### Self-hosted NIM on an NVIDIA L4 🟩
+
+The same benchmark command ran against a self-hosted NIM container on one rented NVIDIA L4 (24 GB). Measured 2026-11-21.
+
+- Image: `nvcr.io/nim/nvidia/nemotron-3.5-bolt-e4b-4gb:2.1.4` (NIM 2.1.4, which started vLLM 0.30.0 in bf16)
+- Speculative decoding off and GPU memory utilization raised to 0.97, both needed to fit this card
+- Client on the same host, so there is no network in the TTFT
+- Settings: the same 5 runs, 256 max tokens, temperature 0.2 and prompt
+
+| model | ok | median TTFT ms | TTFT min to max | median tok/s | tok/s min to max | median total ms | median out tokens | errors |
+|---|---|---|---|---|---|---|---|---|
+| nvidia/nemotron-3.5-bolt-e4b-4gb | 5/5 | 83 | 82 to 111 | 26.4 | 26.4 to 26.4 | 2771 | 71.0 | - |
+
+This is one small GPU with one of the container's speed features switched off. It is not what the model does on the hosted endpoint, and it is not a tuned deployment. It shows that the recipe works and that the kit runs against it unchanged. The agent ran there too, with three MCP tool calls ([capture](bench/results/2026-11-21-self-hosted-nim-l4-agent.txt)).
 
 ## Hosted to local in one line 🏠
 
@@ -264,9 +279,9 @@ NIM_BASE_URL=http://127.0.0.1:8089/v1 NIM_MODEL=mock/fast node agent/agent.mjs "
 | Hosted NIM (`integrate.api.nvidia.com`) | ✅ Run on 2026-11-21 |
 | Local OpenAI-compatible server on Apple Silicon (MLX) | ✅ Run on 2026-11-21 |
 | Offline mock (`local/mock-nim.mjs`) | ✅ Run in the tests and the demo |
-| Self-hosted NIM container on an NVIDIA GPU | ⬜ Not run yet. The author has no NVIDIA GPU. The recipe in `local/docker-compose.yml` is written from NVIDIA's documentation. |
+| Self-hosted NIM container on an NVIDIA GPU | ✅ Run once on 2026-11-21, on a rented NVIDIA L4. The author owns no NVIDIA GPU. |
 
-<!-- GPU-RUN -->
+The self-hosted run used `local/docker-compose.yml` unchanged, with image `nvcr.io/nim/nvidia/nemotron-3.5-bolt-e4b-4gb:2.1.4`. It needed two settings to fit a 24 GB card. [local/README.md](local/README.md#fitting-a-smaller-gpu-) has the three things that went wrong first and what fixed each.
 
 Going local also means your own model ids, your own capacity limits, and tool calling that depends on the model and the server together.
 
@@ -308,7 +323,7 @@ nim-devrel-kit/
 │   └── mcp-server.mjs                   # four NIM tools over MCP
 ├── local/
 │   ├── mock-nim.mjs                     # offline OpenAI-compatible mock
-│   └── docker-compose.yml               # self-hosted NIM recipe (not run by the author)
+│   └── docker-compose.yml               # self-hosted NIM recipe (run once on a rented L4)
 ├── scripts/
 │   ├── demo.sh                          # the five-act demo
 │   ├── smoke-quickstart.sh              # runs all three quickstarts
@@ -335,7 +350,8 @@ node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, lo
 | ✅ | MCP agent with four NIM tools and a deterministic tool floor |
 | ✅ | Offline mock with fault injection, five-act demo and 86 tests |
 | ✅ | Hosted Nemotron benchmark, 2026-11-21, with raw runs |
-| 🔨 | Self-hosted NIM container run on an NVIDIA GPU, to replace the documented-only recipe |
+| ✅ | Self-hosted NIM container run on an NVIDIA GPU (one rented L4, 2026-11-21) |
+| 🔨 | Self-hosted run with speculative decoding on, on a larger GPU |
 | ⬜ | Tool calling latency in the hosted benchmark, not only a pass or fail check |
 | ⬜ | Workshop built from the demo, with a timed exercise per act |
 

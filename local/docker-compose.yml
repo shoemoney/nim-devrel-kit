@@ -1,5 +1,7 @@
-# Written from NVIDIA documentation, not run by the author, whose hardware is Apple Silicon.
-# This recipe needs an NVIDIA GPU and an NGC key. The author has no NVIDIA GPU.
+# Self-hosted NIM, written from NVIDIA documentation.
+# Run once by the author on a rented NVIDIA L4 (2026-11-21) with
+# NIM_IMAGE=nvcr.io/nim/nvidia/nemotron-3.5-bolt-e4b-4gb:2.1.4. The author owns no NVIDIA GPU.
+# This recipe needs an NVIDIA GPU, an NGC key and about 200 GB of disk.
 # Current launch, image, port, cache and readiness docs (checked 2026-11-21):
 # https://docs.nvidia.com/nim/large-language-models/latest/get-started/quickstart.html
 # https://docs.nvidia.com/nim/large-language-models/latest/get-started/configuration.html
@@ -13,7 +15,12 @@ services:
   nim:
     image: ${NIM_IMAGE:?set NIM_IMAGE to a NIM container image from the NGC catalog}
     environment:
-      NGC_API_KEY: ${NGC_API_KEY:?set NGC_API_KEY in your environment}
+      - NGC_API_KEY=${NGC_API_KEY:?set NGC_API_KEY in your environment}
+      # Optional tuning, passed through only when set in your shell.
+      # See the "Fitting a smaller GPU" note in local/README.md.
+      - NIM_PASSTHROUGH_ARGS
+      - NIM_SPECDEC_ENABLE
+      - NIM_MAX_MODEL_LEN
     ports:
       - "127.0.0.1:8000:8000"
     volumes:

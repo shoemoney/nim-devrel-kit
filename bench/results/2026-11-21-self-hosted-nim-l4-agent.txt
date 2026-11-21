@@ -1,0 +1,12 @@
+Step 1: nvidia/nemotron-3.5-bolt-e4b-4gb
+  🔧 list_models({}) 52 ms
+     {"ids":["nvidia/nemotron-3.5-bolt-e4b-4gb"],"total":1,"matched":1}
+Step 2: nvidia/nemotron-3.5-bolt-e4b-4gb
+  🔧 check_model({"model":"nvidia/nemotron-3.5-bolt-e4b-4gb"}) 158 ms
+     {"model":"nvidia/nemotron-3.5-bolt-e4b-4gb","status":"alive","httpStatus":200,"detail":"Chat completion succeeded.","latencyMs":155.90017500000022}
+Step 3: nvidia/nemotron-3.5-bolt-e4b-4gb
+  🔧 supports_tools({"model":"nvidia/nemotron-3.5-bolt-e4b-4gb"}) 546 ms
+     {"model":"nvidia/nemotron-3.5-bolt-e4b-4gb","supportsTools":true,"detail":"Well formed ping call returned."}
+Step 4: nvidia/nemotron-3.5-bolt-e4b-4gb
+
+The first model listed is `nvidia/nemotron-3.5-bolt-e4b-4gb`. It is alive and supports tools.
