@@ -279,6 +279,7 @@ NIM_BASE_URL=http://127.0.0.1:8089/v1 NIM_MODEL=mock/fast node agent/agent.mjs "
 | Hosted NIM (`integrate.api.nvidia.com`) | ✅ Run on 2026-11-21 |
 | Local OpenAI-compatible server on Apple Silicon (MLX) | ✅ Run on 2026-11-21 |
 | Offline mock (`local/mock-nim.mjs`) | ✅ Run in the tests and the demo |
+| macOS with the stock bash 3.2 (Apple Silicon) | ✅ Tests, both demo modes and the quickstarts, 2026-11-21 |
 | Self-hosted NIM container on an NVIDIA GPU | ✅ Run once on 2026-11-21, on a rented NVIDIA L4. The author owns no NVIDIA GPU. |
 
 The self-hosted run used `local/docker-compose.yml` unchanged, with image `nvcr.io/nim/nvidia/nemotron-3.5-bolt-e4b-4gb:2.1.4`. It needed two settings to fit a 24 GB card. [local/README.md](local/README.md#fitting-a-smaller-gpu-) has the three things that went wrong first and what fixed each.
@@ -296,9 +297,9 @@ Every flag below comes from the code. Defaults are in parentheses.
 | `node quickstart/node/quickstart.mjs` | same env | Streams a reply with built-in `fetch`, no dependencies |
 | `bash scripts/smoke-quickstart.sh` | none, needs `uv` | Runs all three quickstarts and prints wall seconds |
 | `node router/nim-route.mjs models` | `--base URL`, `--probe`, `--concurrency N` (6) | Lists catalog ids. With `--probe`, classifies each as `chat`, `gone`, `rate-limited`, `not-chat` or `error` |
-| `node router/nim-route.mjs bench` | `--base URL`, `--models a,b`, `--all-chat`, `--runs N` (5), `--max-tokens N` (256), `--prompt TEXT`, `--timeout-ms N` (120000), `--concurrency N` (3), `--out FILE` | Times each model with streamed runs and prints a table. `--out` writes JSON with raw runs |
+| `node router/nim-route.mjs bench` | `--base URL`, `--models a,b`, `--all-chat`, `--runs N` (5), `--max-tokens N` (256), `--prompt TEXT`, `--timeout-ms N` (120000), `--concurrency N` (3), `--out FILE`, `--label TEXT` | Times each model with streamed runs and prints a table. `--out` writes JSON with raw runs. The JSON names the NVIDIA host, or `local` for any other server, unless `--label` sets a name |
 | `node router/nim-route.mjs route` | the bench options, plus `--no-bench`. `--runs` defaults to 2 | Ranks by median TTFT, streams the prompt from the fastest healthy model and prints the route log. `--no-bench` needs `--models` in ranked order |
-| `node agent/agent.mjs "question"` | `--model ID`, `--base URL`, `--max-steps N` (8), `--mcp "command"` (repeatable), `--json`, `--quiet` | Runs the tool loop. `--json` prints the answer, steps, tool calls, models used and route log |
+| `node agent/agent.mjs "question"` | `--model ID`, `--base URL`, `--max-steps N` (8), `--mcp "command"` (repeatable), `--mcp-share-key`, `--json`, `--quiet` | Runs the tool loop. `--json` prints the answer, steps, tool calls, models used and route log. Custom `--mcp` servers do not get `NVIDIA_API_KEY` unless `--mcp-share-key` is passed. Exit code 0 for an answer, 1 for an error, 2 if it stopped on the step limit or a repeated call |
 | `node agent/mcp-server.mjs` | none | Serves the four NIM tools over stdio. The agent normally starts it for you |
 | `node local/mock-nim.mjs` | `--port N` (8089), `--slow-ms N` (400), `--token-delay-ms N` (10) | Offline OpenAI-compatible mock with fault injection |
 | `bash scripts/demo.sh` | `--offline`. Env: `DEMO_PAUSE=1`, `MOCK_PORT` (8089) | Runs the five-act demo |
