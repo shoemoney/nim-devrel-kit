@@ -51,7 +51,7 @@ curl http://localhost:8089/__mock/fail -H 'Content-Type: application/json' \
   -d '{"model":"mock/fast","status":429,"count":3}'
 curl http://localhost:8089/__mock/stats
 curl -X POST http://localhost:8089/__mock/reset
-node --test local
+node --test local/*.test.mjs
 ```
 
 Reset clears injected faults, counts and the flaky sequence. It preserves built-in busy/retired behavior. Stats count chat requests by model and HTTP status. For programmable demos, `await startMock({ port: 0, flakyRate: 0.5, seed: 1 })` returns `{ server, base, close }`; await `close()` afterwards. Tools call the first supplied function with `"demo"` for required string arguments, then quote a supplied tool result. This exercises the loop, not model intelligence.

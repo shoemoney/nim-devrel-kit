@@ -33,7 +33,7 @@ node agent/agent.mjs
 node agent/agent.mjs "Is meta/llama-3.1-8b-instruct still available?"
 node agent/agent.mjs "Check my model" --model nvidia/nemotron-3.5-bolt-e4b
 node agent/agent.mjs "Compare current small Nemotron models" --json
-node --test agent
+node --test agent/*.test.mjs
 ```
 
 `--quiet` prints only the answer. `--max-steps 8` bounds model turns.
