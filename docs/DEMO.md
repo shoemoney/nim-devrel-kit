@@ -172,7 +172,7 @@ The client code does not change. Only `NIM_BASE_URL` changes, and `NIM_MODEL` if
 
 ### 4. What is your hands-on experience with NIM, CUDA, TensorRT-LLM or Triton?
 
-Honest answer: my own hardware is Apple Silicon, and I run local models there with MLX. The hosted NIM work in this repo is real and measured on 2026-11-21, and the raw runs are in `bench/results/`. I own no NVIDIA GPU, so for the self-hosted path I rented one NVIDIA L4 for an hour and ran the NIM container from `local/docker-compose.yml`: NIM 2.1.4, which starts vLLM, serving `nemotron-3.5-bolt-e4b`. It measured 83 ms median time to first token and 26.4 tokens per second with speculative decoding off, and the agent made three MCP tool calls against it. I have not worked with TensorRT-LLM or Triton directly. I am a contributor to NeMo.
+Honest answer: my own hardware is Apple Silicon, and I run local models there with MLX. The hosted NIM work in this repo is real and measured on 2026-11-21, and the raw runs are in `bench/results/`. I own no NVIDIA GPU, so for the self-hosted path I rented one NVIDIA L4 for an hour and ran the NIM container from `local/docker-compose.yml`: NIM 2.1.4, which starts vLLM, serving `nemotron-3.5-bolt-e4b`. It measured 83 ms median time to first token and 26.4 tokens per second with speculative decoding off, and the agent made three MCP tool calls against it. That card was too small for the container's speculative decoding, so I rented an NVIDIA L40S the next day and ran it both ways: 124.5 tokens per second with it on and 69.6 with it off, which is 1.8 times on that card and prompt. I have not worked with TensorRT-LLM or Triton directly. I am a contributor to NeMo.
 
 The part I would lead with is what broke. The image is about 51 GB and filled a 120 GB disk. The default profile would not start on a 24 GB card, because the video decoder cache wanted more memory than was left for the KV cache. And the variable that fixed that, `NIM_PASSTHROUGH_ARGS`, dropped the default tool calling flags, so tool calls returned 400 until I added them back. All three are written up in `local/README.md`. That is the job: hit the sharp edge before the partner does, then write it down.
 
@@ -218,6 +218,7 @@ Also worth quoting:
 
 - The full five-act demo ran in 12 and 16 seconds of wall time in two runs against hosted NIM on 2026-11-21 (`bench/results/2026-11-21-demo-run.txt`).
 - Self-hosted NIM on one rented NVIDIA L4, 2026-11-21: `nemotron-3.5-bolt-e4b`, 83 ms median TTFT, 26.4 tokens per second, speculative decoding off (`bench/results/2026-11-21-self-hosted-nim-l4.json`).
+- Self-hosted NIM on one rented NVIDIA L40S, 2026-11-22: same model, 124.5 tokens per second with speculative decoding on and 69.6 with it off, 38 ms and 33 ms median TTFT (`bench/results/2026-11-22-self-hosted-nim-l40s-specdec-on.json`, `-off.json`).
 - Quickstart wall times on 2026-11-21: curl 0.52 s, Python 0.82 s, Node 0.55 s.
 
 **This is a snapshot.** It is one client, one time of day, one shared public endpoint and five runs per model. Say so every time you quote it. The raw runs are in `bench/results/2026-11-21-nemotron-hosted.json`, and the full methodology is in the README.

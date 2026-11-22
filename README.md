@@ -257,6 +257,19 @@ The same benchmark command ran against a self-hosted NIM container on one rented
 
 This is one small GPU with one of the container's speed features switched off. It is not what the model does on the hosted endpoint, and it is not a tuned deployment. It shows that the recipe works and that the kit runs against it unchanged. The agent ran there too, with three MCP tool calls ([capture](bench/results/2026-11-21-self-hosted-nim-l4-agent.txt)).
 
+### Speculative decoding on and off, on an NVIDIA L40S ⚡
+
+The L4 run above had speculative decoding switched off to fit the card, so the same container ran again on one rented NVIDIA L40S (48 GB) with it on and then off. Measured 2026-11-22. Same image, same benchmark command and settings, client on the same host. Each row is the second 5-run pass after one warm-up pass.
+
+| speculative decoding | ok | median TTFT ms | TTFT min to max | median tok/s | tok/s min to max | median total ms | median out tokens | errors |
+|---|---|---|---|---|---|---|---|---|
+| on (the image default) | 5/5 | 38 | 37 to 38 | 124.5 | 118.7 to 128.4 | 613 | 71.0 | - |
+| off (`NIM_SPECDEC_ENABLE=0`) | 5/5 | 33 | 31 to 33 | 69.6 | 69.4 to 69.7 | 1112 | 75.0 | - |
+
+On this card and this prompt, speculative decoding gave 1.8 times the tokens per second (124.5 against 69.6). Time to first token was about the same either way. This is one card, one prompt and one stream at a time, so treat it as a single observation.
+
+The only setting added for both rows was `NIM_PASSTHROUGH_ARGS="--enable-auto-tool-choice --tool-call-parser gemma4 --reasoning-parser gemma4"`. On the L40S the container's default launch did not enable tool calling, and the agent got HTTP 400 until those flags were set. On the L4 the default launch had included them. The agent then completed three MCP tool calls ([capture](bench/results/2026-11-22-self-hosted-nim-l40s-agent.txt)). Raw runs: [on](bench/results/2026-11-22-self-hosted-nim-l40s-specdec-on.json), [off](bench/results/2026-11-22-self-hosted-nim-l40s-specdec-off.json).
+
 ## Hosted to local in one line 🏠
 
 The client code stays the same. Point `NIM_BASE_URL` at another OpenAI-compatible `/v1` URL and set `NIM_MODEL` to an id that server lists:
@@ -280,9 +293,9 @@ NIM_BASE_URL=http://127.0.0.1:8089/v1 NIM_MODEL=mock/fast node agent/agent.mjs "
 | Local OpenAI-compatible server on Apple Silicon (MLX) | ✅ Run on 2026-11-21 |
 | Offline mock (`local/mock-nim.mjs`) | ✅ Run in the tests and the demo |
 | macOS with the stock bash 3.2 (Apple Silicon) | ✅ Tests, both demo modes and the quickstarts, 2026-11-21 |
-| Self-hosted NIM container on an NVIDIA GPU | ✅ Run once on 2026-11-21, on a rented NVIDIA L4. The author owns no NVIDIA GPU. |
+| Self-hosted NIM container on an NVIDIA GPU | ✅ Run on a rented NVIDIA L4 (2026-11-21) and a rented NVIDIA L40S (2026-11-22). The author owns no NVIDIA GPU. |
 
-The self-hosted run used `local/docker-compose.yml` unchanged, with image `nvcr.io/nim/nvidia/nemotron-3.5-bolt-e4b-4gb:2.1.4`. It needed two settings to fit a 24 GB card. [local/README.md](local/README.md#fitting-a-smaller-gpu-) has the three things that went wrong first and what fixed each.
+Both self-hosted runs used `local/docker-compose.yml` unchanged, with image `nvcr.io/nim/nvidia/nemotron-3.5-bolt-e4b-4gb:2.1.4`. The L4 needed two settings to fit a 24 GB card. [local/README.md](local/README.md#fitting-a-smaller-gpu-) has the three things that went wrong first and what fixed each.
 
 Going local also means your own model ids, your own capacity limits, and tool calling that depends on the model and the server together.
 
@@ -324,7 +337,7 @@ nim-devrel-kit/
 │   └── mcp-server.mjs                   # four NIM tools over MCP
 ├── local/
 │   ├── mock-nim.mjs                     # offline OpenAI-compatible mock
-│   └── docker-compose.yml               # self-hosted NIM recipe (run once on a rented L4)
+│   └── docker-compose.yml               # self-hosted NIM recipe (run on a rented L4 and L40S)
 ├── scripts/
 │   ├── demo.sh                          # the five-act demo
 │   ├── smoke-quickstart.sh              # runs all three quickstarts
@@ -352,7 +365,7 @@ node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, lo
 | ✅ | Offline mock with fault injection, five-act demo and 86 tests |
 | ✅ | Hosted Nemotron benchmark, 2026-11-21, with raw runs |
 | ✅ | Self-hosted NIM container run on an NVIDIA GPU (one rented L4, 2026-11-21) |
-| 🔨 | Self-hosted run with speculative decoding on, on a larger GPU |
+| ✅ | Self-hosted run with speculative decoding on and off, on a larger GPU (one rented L40S, 2026-11-22) |
 | ⬜ | Tool calling latency in the hosted benchmark, not only a pass or fail check |
 | ⬜ | Workshop built from the demo, with a timed exercise per act |
 

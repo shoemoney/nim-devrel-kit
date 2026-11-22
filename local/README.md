@@ -58,7 +58,7 @@ Reset clears injected faults, counts and the flaky sequence. It preserves built-
 
 ## 📦 Self-hosted NIM container
 
-**Run once by the author, on a rented NVIDIA L4 on 2026-11-21.** The author owns no NVIDIA GPU. The recipe follows [NVIDIA's current quickstart](https://docs.nvidia.com/nim/large-language-models/latest/get-started/quickstart.html) and [configuration guide](https://docs.nvidia.com/nim/large-language-models/latest/get-started/configuration.html). Check the [prerequisites](https://docs.nvidia.com/nim/large-language-models/latest/get-started/prerequisites.html), GPU/profile support, image license and [NGC catalog](https://catalog.ngc.nvidia.com/orgs/nim/teams/meta/containers/llama-3.1-8b-instruct) before use. A named volume persists `/opt/nim/.cache`; readiness checks `/v1/health/ready` on port 8000. The 16 GB shared memory setting follows [NVIDIA's 1.14 guidance](https://docs.nvidia.com/nim/large-language-models/1.14.0/getting-started.html).
+**Run by the author on a rented NVIDIA L4 (2026-11-21) and a rented NVIDIA L40S (2026-11-22).** The author owns no NVIDIA GPU. The recipe follows [NVIDIA's current quickstart](https://docs.nvidia.com/nim/large-language-models/latest/get-started/quickstart.html) and [configuration guide](https://docs.nvidia.com/nim/large-language-models/latest/get-started/configuration.html). Check the [prerequisites](https://docs.nvidia.com/nim/large-language-models/latest/get-started/prerequisites.html), GPU/profile support, image license and [NGC catalog](https://catalog.ngc.nvidia.com/orgs/nim/teams/meta/containers/llama-3.1-8b-instruct) before use. A named volume persists `/opt/nim/.cache`; readiness checks `/v1/health/ready` on port 8000. The 16 GB shared memory setting follows [NVIDIA's 1.14 guidance](https://docs.nvidia.com/nim/large-language-models/1.14.0/getting-started.html).
 
 Set `NIM_IMAGE` to your chosen compatible NGC image/tag and load `NGC_API_KEY` into your environment using your credential manager. This recipe requires the key; current NVIDIA docs also describe eligible public images with keyless access. From the repository root:
 
@@ -94,7 +94,17 @@ export NIM_SPECDEC_ENABLE=0
 export NIM_PASSTHROUGH_ARGS="--gpu-memory-utilization 0.97 --enable-auto-tool-choice --tool-call-parser gemma4 --reasoning-parser gemma4"
 ```
 
-Speculative decoding was off for that run, so its tokens per second is lower than the same model family on the hosted endpoint. A larger GPU should not need any of this.
+Speculative decoding was off for that run, so its tokens per second is lower than the same model family on the hosted endpoint.
+
+### On a 48 GB GPU ⚡
+
+The same image ran on one rented NVIDIA L40S (48 GB) on 2026-11-22. It started at default settings with speculative decoding on, and needed neither memory setting. One thing differed from the L4: the default launch on this card did not enable tool calling, so a request with `tools` returned HTTP 400. Setting the tool flags fixed it and left speculative decoding on:
+
+```sh
+export NIM_PASSTHROUGH_ARGS="--enable-auto-tool-choice --tool-call-parser gemma4 --reasoning-parser gemma4"
+```
+
+Check the `Launching vLLM:` line in the container log to see which flags your card got.
 
 ## ✅ What was actually run
 
@@ -102,7 +112,7 @@ Speculative decoding was off for that run, so its tokens per second is lower tha
 | --- | --- |
 | Hosted NIM | Run |
 | Local OpenAI-compatible server on Apple Silicon via MLX | Run |
-| Self-hosted NIM container on an NVIDIA GPU | Run once on a rented NVIDIA L4 (the author owns no NVIDIA GPU) |
+| Self-hosted NIM container on an NVIDIA GPU | Run on a rented NVIDIA L4 and a rented NVIDIA L40S (the author owns no NVIDIA GPU) |
 
 Self-hosted NIM on an NVIDIA GPU, measured 2026-11-21. One rented cloud instance with a single NVIDIA L4 (24 GB), NIM 2.1.4 starting vLLM 0.30.0 in bf16, speculative decoding off (see "Fitting a smaller GPU"). The client ran on the same host. Same benchmark command, 5 sequential runs, 256 max tokens. Raw runs: `bench/results/2026-11-21-self-hosted-nim-l4.json`.
 
@@ -111,6 +121,15 @@ Self-hosted NIM on an NVIDIA GPU, measured 2026-11-21. One rented cloud instance
 | nvidia/nemotron-3.5-bolt-e4b-4gb | 5/5 | 83 | 82 to 111 | 26.4 | 26.4 to 26.4 | 2771 | 71.0 | - |
 
 The agent also ran against it: three MCP tool calls (`list_models`, `check_model`, `supports_tools`) and a grounded answer. Capture: `bench/results/2026-11-21-self-hosted-nim-l4-agent.txt`.
+
+Same container on one rented NVIDIA L40S (48 GB), measured 2026-11-22, speculative decoding on and then off. Same command and settings, second pass after one warm-up pass. Raw runs: `bench/results/2026-11-22-self-hosted-nim-l40s-specdec-on.json` and `-off.json`.
+
+| speculative decoding | ok | median TTFT ms | TTFT min to max | median tok/s | tok/s min to max | median total ms | median out tokens | errors |
+|---|---|---|---|---|---|---|---|---|
+| on | 5/5 | 38 | 37 to 38 | 124.5 | 118.7 to 128.4 | 613 | 71.0 | - |
+| off | 5/5 | 33 | 31 to 33 | 69.6 | 69.4 to 69.7 | 1112 | 75.0 | - |
+
+The agent ran there too, with three MCP tool calls. Capture: `bench/results/2026-11-22-self-hosted-nim-l40s-agent.txt`.
 
 Local MLX server on Apple Silicon: the warm 5-run table is in the main [README](../README.md#measured-results-).
 

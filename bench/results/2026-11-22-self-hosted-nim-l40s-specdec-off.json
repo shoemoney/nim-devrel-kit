@@ -1,0 +1,80 @@
+{
+  "kit": "nim-devrel-kit",
+  "date": "2026-11-22T19:58:47.347Z",
+  "base": "self-hosted-nim-l40s-specdec-off",
+  "node": "v22.23.5",
+  "platform": "linux",
+  "settings": {
+    "runs": 5,
+    "maxTokens": 256,
+    "temperature": 0.2,
+    "prompt": "In three sentences, explain why KV-cache size limits batch size during LLM inference.",
+    "concurrency": 3,
+    "timeoutMs": 120000
+  },
+  "results": [
+    {
+      "model": "nvidia/nemotron-3.5-bolt-e4b-4gb",
+      "runs": 5,
+      "ok": 5,
+      "gone": false,
+      "errors": [],
+      "rawRuns": [
+        {
+          "run": 1,
+          "ok": true,
+          "ttftMs": 31.217473000000005,
+          "totalMs": 1152.153023,
+          "outTokens": 78,
+          "tokensEstimated": false,
+          "tokPerSec": 69.58473214628619
+        },
+        {
+          "run": 2,
+          "ok": true,
+          "ttftMs": 33.246403999999984,
+          "totalMs": 1111.5950579999999,
+          "outTokens": 75,
+          "tokensEstimated": false,
+          "tokPerSec": 69.55078927561773
+        },
+        {
+          "run": 3,
+          "ok": true,
+          "ttftMs": 33.40621800000008,
+          "totalMs": 1009.7433410000003,
+          "outTokens": 68,
+          "tokensEstimated": false,
+          "tokPerSec": 69.64807380370395
+        },
+        {
+          "run": 4,
+          "ok": true,
+          "ttftMs": 33.48110899999983,
+          "totalMs": 951.6282229999997,
+          "outTokens": 64,
+          "tokensEstimated": false,
+          "tokPerSec": 69.7056049342437
+        },
+        {
+          "run": 5,
+          "ok": true,
+          "ttftMs": 33.439587999999276,
+          "totalMs": 1214.2419709999995,
+          "outTokens": 82,
+          "tokensEstimated": false,
+          "tokPerSec": 69.44430429727544
+        }
+      ],
+      "ttftMs": 33.40621800000008,
+      "ttftMinMs": 31.217473000000005,
+      "ttftMaxMs": 33.48110899999983,
+      "tokPerSec": 69.58473214628619,
+      "tokPerSecMin": 69.44430429727544,
+      "tokPerSecMax": 69.7056049342437,
+      "totalMs": 1111.5950579999999,
+      "outTokens": 75,
+      "tokensEstimated": false
+    }
+  ]
+}
