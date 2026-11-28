@@ -10,7 +10,31 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 OFFLINE=0
-[ "${1:-}" = "--offline" ] && OFFLINE=1
+usage() {
+  cat <<'EOF'
+Usage: bash scripts/demo.sh [--offline | --help | -h]
+
+Run the five-act demo against hosted NIM, or use --offline for the bundled mock.
+Set DEMO_PAUSE=1 to wait for Enter between acts.
+Set MOCK_PORT to choose the mock server port (default: 8089).
+EOF
+}
+unknown_argument() {
+  printf 'Unknown argument: %s\n' "$1" >&2
+  usage >&2
+  exit 2
+}
+if [ "$#" -gt 0 ]; then
+  case "$1" in
+    --offline | --help | -h) ;;
+    *) unknown_argument "$1" ;;
+  esac
+  [ "$#" -le 1 ] || unknown_argument "$2"
+  case "$1" in
+    --offline) OFFLINE=1 ;;
+    --help | -h) usage; exit 0 ;;
+  esac
+fi
 MOCK_PORT="${MOCK_PORT:-8089}"
 MOCK_BASE="http://127.0.0.1:${MOCK_PORT}/v1"
 BENCH_MODELS=()
