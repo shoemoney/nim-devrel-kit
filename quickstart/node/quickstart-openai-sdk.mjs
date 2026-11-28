@@ -31,7 +31,7 @@ async function main() {
 }
 main().catch(error => {
   if (error.status === 410) console.error(`410: ${error.error?.detail || 'Model reached end of life.'} Pick another model from /v1/models.`);
-  else if ([401, 403].includes(error.status)) console.error('401: Check NVIDIA_API_KEY or your server credentials.');
+  else if ([401, 403].includes(error.status)) console.error(`${error.status}: Check NVIDIA_API_KEY or your server credentials.`);
   else if (error.status === 429) console.error('429: Rate limit reached. Wait before trying again.');
   else if (error.status === 404) console.error('404: Model not found. Pick a chat model from /v1/models.');
   else if (error.status) console.error(`HTTP ${error.status}: Request failed. Check the server and model.`);

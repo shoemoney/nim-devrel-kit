@@ -25,7 +25,7 @@ except (ValueError, OSError): body = {}
 if status == 410:
     message = "410: " + str(body.get("detail", "Model reached end of life.")) + " Pick another model from /v1/models."
 else:
-    message = {401: "401: Check NVIDIA_API_KEY or your server credentials.", 403: "401: Check NVIDIA_API_KEY or your server credentials.", 429: "429: Rate limit reached. Wait before trying again.", 404: "404: Model not found. Pick a chat model from /v1/models."}.get(status, f"HTTP {status}: Request failed. Check the server and model.")
+    message = {401: "401: Check NVIDIA_API_KEY or your server credentials.", 403: "403: Check NVIDIA_API_KEY or your server credentials.", 429: "429: Rate limit reached. Wait before trying again.", 404: "404: Model not found. Pick a chat model from /v1/models."}.get(status, f"HTTP {status}: Request failed. Check the server and model.")
 sys.exit(message)
 ' "$1" "$2"
 }

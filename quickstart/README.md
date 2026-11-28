@@ -112,6 +112,7 @@ This first request included a cold model load on the local server; a warm 5-run 
 | Symptom | What to do |
 | --- | --- |
 | 401 unauthorized | Check that `NVIDIA_API_KEY` is exported, valid and authorized for the endpoint. |
+| 403 forbidden | Check that your key or server credentials are authorized for the model. |
 | 404 model not found | Fetch `$NIM_BASE_URL/models` and set `NIM_MODEL` to a current chat model id. |
 | 410 end of life | Read the server's `detail`, choose another model from `/v1/models`, and do not retry the retired id. |
 | 429 rate limit | Wait before retrying. Reduce request frequency. |

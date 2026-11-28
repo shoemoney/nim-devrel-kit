@@ -27,7 +27,7 @@ for (const status of [401, 403]) test(`Node and curl show credential guidance fo
   const base = await serve(t, status);
   for (const [command, args] of [[process.execPath, ['quickstart/node/quickstart.mjs']], ['bash', ['quickstart/curl.sh']]]) {
     const out = await run(command, args, base);
-    assert.equal(out.code, 1); assert.match(out.stderr, /Check NVIDIA_API_KEY or your server credentials/);
+    assert.equal(out.code, 1); assert.match(out.stderr, new RegExp(`^${status}: Check NVIDIA_API_KEY or your server credentials`));
   }
 });
 test('curl succeeds without auth headers on local server under nounset', async (t) => {
@@ -41,7 +41,7 @@ for (const status of [401, 403]) test(`SDK quickstarts handle credential status 
   const source = await readFile('quickstart/node/quickstart-openai-sdk.mjs', 'utf8');
   const stubbed = source.replace("await import('openai')", `await Promise.resolve({ default: class OpenAI { constructor() { throw Object.assign(new Error('refused'), {status:${status}}); } } })`);
   const node = await run(process.execPath, ['--input-type=module', '-e', stubbed], 'http://offline/v1');
-  assert.equal(node.code, 1); assert.match(node.stderr, /Check NVIDIA_API_KEY or your server credentials/);
+  assert.equal(node.code, 1); assert.match(node.stderr, new RegExp(`^${status}: Check NVIDIA_API_KEY or your server credentials`));
   const stub = `import sys,types,runpy
 m=types.ModuleType("openai")
 class APIStatusError(Exception):
@@ -52,5 +52,5 @@ m.APIStatusError=APIStatusError
 sys.modules["openai"]=m
 runpy.run_path("quickstart/python/quickstart.py",run_name="__main__")`;
   const python = await run('python3', ['-c', stub], 'http://offline/v1');
-  assert.equal(python.code, 1); assert.match(python.stderr, /Check NVIDIA_API_KEY or your server credentials/);
+  assert.equal(python.code, 1); assert.match(python.stderr, new RegExp(`^${status}: Check NVIDIA_API_KEY or your server credentials`));
 });
