@@ -38,7 +38,7 @@ node router/nim-route.mjs route --prompt 'Say hi in five words.' --runs 1
 node router/nim-route.mjs route --models nvidia/nemotron-3.5-bolt-e4b --no-bench --prompt 'Hello'
 ```
 
-`--no-bench` uses `--models` as an explicit ranked order. The CLI prints the
+`--no-bench` uses `--models` as an explicit ranked order. `--out` and `--label` need a benchmark run, so `route --no-bench` rejects them. The CLI prints the
 served model's timings and the route log after streaming the answer.
 
 The router parks a model temporarily on 429, 5xx, timeout, or network failure.

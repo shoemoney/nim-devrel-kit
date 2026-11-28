@@ -7,8 +7,9 @@
 +------------------------------------------------------+
 ```
 
+[![CI](https://github.com/shoemoney/nim-devrel-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/shoemoney/nim-devrel-kit/actions/workflows/ci.yml)
 ![node](https://img.shields.io/badge/node-%3E%3D%2020-339933)
-![tests](https://img.shields.io/badge/tests-86%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-108%20passing-brightgreen)
 ![license](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![NVIDIA NIM](https://img.shields.io/badge/NVIDIA%20NIM-76B900)
 ![MCP](https://img.shields.io/badge/MCP-tools-8A2BE2)
@@ -311,13 +312,13 @@ Every flag below comes from the code. Defaults are in parentheses.
 | `bash scripts/smoke-quickstart.sh` | none, needs `uv` | Runs all three quickstarts and prints wall seconds |
 | `node router/nim-route.mjs models` | `--base URL`, `--probe`, `--concurrency N` (6) | Lists catalog ids. With `--probe`, classifies each as `chat`, `gone`, `rate-limited`, `not-chat` or `error` |
 | `node router/nim-route.mjs bench` | `--base URL`, `--models a,b`, `--all-chat`, `--runs N` (5), `--max-tokens N` (256), `--prompt TEXT`, `--timeout-ms N` (120000), `--concurrency N` (3), `--out FILE`, `--label TEXT` | Times each model with streamed runs and prints a table. `--out` writes JSON with raw runs. The JSON names the NVIDIA host, or `local` for any other server, unless `--label` sets a name |
-| `node router/nim-route.mjs route` | the bench options, plus `--no-bench`. `--runs` defaults to 2 | Ranks by median TTFT, streams the prompt from the fastest healthy model and prints the route log. `--no-bench` needs `--models` in ranked order |
+| `node router/nim-route.mjs route` | the bench options, plus `--no-bench`. `--runs` defaults to 2 | Ranks by median TTFT, streams the prompt from the fastest healthy model and prints the route log. `--no-bench` needs `--models` in ranked order. `--out` and `--label` need a benchmark run, so they cannot be combined with `--no-bench` |
 | `node agent/agent.mjs "question"` | `--model ID`, `--base URL`, `--max-steps N` (8), `--mcp "command"` (repeatable), `--mcp-share-key`, `--json`, `--quiet` | Runs the tool loop. `--json` prints the answer, steps, tool calls, models used and route log. Custom `--mcp` servers do not get `NVIDIA_API_KEY` unless `--mcp-share-key` is passed. Exit code 0 for an answer, 1 for an error, 2 if it stopped on the step limit or a repeated call |
 | `node agent/mcp-server.mjs` | none | Serves the four NIM tools over stdio. The agent normally starts it for you |
 | `node local/mock-nim.mjs` | `--port N` (8089), `--slow-ms N` (400), `--token-delay-ms N` (10) | Offline OpenAI-compatible mock with fault injection |
-| `bash scripts/demo.sh` | `--offline`. Env: `DEMO_PAUSE=1`, `MOCK_PORT` (8089) | Runs the five-act demo |
+| `bash scripts/demo.sh` | `--offline`, `--help`. Env: `DEMO_PAUSE=1`, `MOCK_PORT` (8089) | Runs the five-act demo. Any other argument exits 2 with usage, so a typo never falls through to hosted mode |
 | `node scripts/render-results.mjs FILE...` | one or more bench JSON files | Prints markdown tables from the JSON |
-| `npm test` | none | Runs all 86 tests. No network and no key needed |
+| `npm test` | none | Runs all 108 tests. No network and no key needed |
 
 `--base URL` overrides `NIM_BASE_URL` on every router and agent command. `NVIDIA_API_KEY` is the only place a key comes from.
 
@@ -351,7 +352,7 @@ nim-devrel-kit/
 ## Tests 🧪
 
 ```sh
-npm test            # all 86 tests, no network, no key
+npm test            # all 108 tests, no network, no key
 node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, local
 ```
 
@@ -362,7 +363,8 @@ node --test agent/*.test.mjs   # or one module at a time: lib, router, agent, lo
 | ✅ | Quickstarts in curl, Python and Node, with a smoke script |
 | ✅ | Router with probe, benchmark, failover and the 410, 429 and rethrow rules |
 | ✅ | MCP agent with four NIM tools and a deterministic tool floor |
-| ✅ | Offline mock with fault injection, five-act demo and 86 tests |
+| ✅ | Offline mock with fault injection, five-act demo and 108 tests |
+| ✅ | GitHub Actions CI on Node 20, 22 and 24: tests plus the offline demo |
 | ✅ | Hosted Nemotron benchmark, 2026-11-21, with raw runs |
 | ✅ | Self-hosted NIM container run on an NVIDIA GPU (one rented L4, 2026-11-21) |
 | ✅ | Self-hosted run with speculative decoding on and off, on a larger GPU (one rented L40S, 2026-11-22) |
