@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { startMock } from '../local/mock-nim.mjs';
 
 export function run(command, args, env = {}) {
   return new Promise((resolve, reject) => {
@@ -27,6 +28,30 @@ async function server(t, handler) {
   return `http://127.0.0.1:${s.address().port}`;
 }
 const delta = (text) => `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`;
+for (const flag of ['out', 'label']) test(`route rejects --no-bench with --${flag} before calling a model`, async (t) => {
+  const mock = await startMock({ port: 0, tokenDelayMs: 0 });
+  t.after(() => mock.close());
+  const dir = await mkdtemp(join(tmpdir(), 'nim-no-bench-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'result.json');
+  const out = await run(process.execPath, ['router/nim-route.mjs', 'route', '--no-bench', '--models', 'mock/fast', `--${flag}`, flag === 'out' ? path : 'local-test'], { NIM_BASE_URL: mock.base });
+  assert.equal(out.code, 1); assert.match(out.stderr, new RegExp(`--${flag}`));
+  assert.match(out.stderr, /--no-bench/); assert.equal(out.stdout, '');
+  assert.deepEqual((await (await fetch(new URL('/__mock/stats', mock.base))).json()).requests, {});
+  await assert.rejects(readFile(path), { code: 'ENOENT' });
+});
+test('plain route --no-bench and bench --out work against the mock', async (t) => {
+  const mock = await startMock({ port: 0, tokenDelayMs: 0 });
+  t.after(() => mock.close());
+  const dir = await mkdtemp(join(tmpdir(), 'nim-bench-out-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const env = { NIM_BASE_URL: mock.base };
+  const route = await run(process.execPath, ['router/nim-route.mjs', 'route', '--no-bench', '--models', 'mock/fast'], env);
+  assert.equal(route.code, 0); assert.match(route.stdout, /Served by mock\/fast/);
+  const path = join(dir, 'result.json');
+  const out = await run(process.execPath, ['router/nim-route.mjs', 'bench', '--models', 'mock/fast', '--runs', '1', '--out', path], env);
+  assert.equal(out.code, 0); assert.equal(JSON.parse(await readFile(path, 'utf8')).results[0].ok, 1);
+});
 for (const status of [401, 403]) test(`bench all HTTP ${status} failures reports friendly key error before table`, async (t) => {
   const base = await server(t, (_, res) => { res.writeHead(status); res.end('Authorization failed'); });
   const out = await run(process.execPath, ['router/nim-route.mjs', 'bench', '--base', base, '--models', 'first,second', '--runs', '1']);

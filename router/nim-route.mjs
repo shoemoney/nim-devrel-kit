@@ -132,6 +132,9 @@ async function main() {
   if (!['models', 'bench', 'route'].includes(command) || positionals.length !== 1) {
     throw new Error('Usage: node router/nim-route.mjs models|bench|route [--base URL] [options]');
   }
+  for (const flag of ['out', 'label']) {
+    if (values['no-bench'] && values[flag] !== undefined) throw new Error(`--${flag} needs a benchmark run; remove --no-bench.`);
+  }
   const { base, key } = resolveConfig({ ...process.env, ...(values.base ? { NIM_BASE_URL: values.base } : {}) });
   const catalog = await listModels({ base, key });
   const ids = new Set(catalog.map((m) => m.id));
